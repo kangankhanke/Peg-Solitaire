@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Peg Solitaire</title>
+    <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&display=swap" rel="stylesheet">
+
+</head>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Amatic SC', cursive;
+        background: linear-gradient(135deg, #fff9c4 0%, #fff59d 100%);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px;
+        color: #333;
+    }
+
+    .header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+        color: #fbc02d;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .controls {
+        background: rgba(255, 255, 200, 0.2);
+        backdrop-filter: blur(8px);
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 30px;
+        border: 1px solid rgba(255, 255, 200, 0.4);
+    }
+
+    .control-group {
+        margin-bottom: 15px;
+    }
+
+    .control-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+        color: #333;
+    }
+
+    select, button {
+        padding: 8px 12px;
+        border: none;
+        border-radius: 8px;
+        background: #fffde7;
+        color: #333;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    button {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(45deg, #fdd835, #fbc02d);
+    color: #333;
+    font-size: 16px;
+    font-weight: 600;
+    font-family: 'Amatic SC', cursive; 
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.25s ease;
+}
+
+button:hover {
+    transform: scale(1.05);
+    background: linear-gradient(45deg, #ffe57f, #fbc02d);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+
+    button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .game-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .board {
+        background: #fdd835;
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        border: 3px solid #fbc02d;
+    }
+
+    .board-grid {
+        display: grid;
+        gap: 4px;
+    }
+
+    .cell {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        transition: all 0.3s ease;
+    }
+
+    .cell.invisible {
+        visibility: hidden;
+    }
+
+    .cell.empty {
+        background: radial-gradient(circle, #fbc02d 0%, #fdd835 100%);
+        border: 2px dashed rgba(0, 0, 0, 0.2);
+        cursor: pointer;
+    }
+
+    .cell.empty:hover {
+        border-color: #ffeb3b;
+        box-shadow: 0 0 10px rgba(255, 235, 59, 0.6);
+    }
+
+    .cell.peg {
+        background: radial-gradient(circle, #fff176 0%, #ffee58 100%);
+        border: 2px solid #ffeb3b;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        cursor: pointer;
+    }
+
+    .cell.peg:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+    }
+
+    .cell.selected {
+        border-color: #ffeb3b !important;
+        box-shadow: 0 0 15px rgba(255, 235, 59, 0.8) !important;
+        transform: scale(1.15) !important;
+    }
+
+    .cell.valid-move {
+        border-color: #00e676 !important;
+        box-shadow: 0 0 10px rgba(0, 230, 118, 0.6) !important;
+        animation: pulse 1s infinite;
+    }
+
+    .cell.invalid-move {
+        border-color: #e53935 !important;
+        box-shadow: 0 0 10px rgba(229, 57, 53, 0.6) !important;
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+    }
+
+    .game-info {
+        background: rgba(255, 255, 200, 0.2);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        padding: 20px;
+        text-align: center;
+        border: 1px solid rgba(255, 255, 200, 0.3);
+        min-width: 200px;
+    }
+
+    .game-info h3 {
+        margin-bottom: 10px;
+        color: #fbc02d;
+    }
+
+    .status {
+        font-size: 1.2rem;
+        margin: 10px 0;
+        font-weight: bold;
+        color: #555;
+    }
+
+    .win-message {
+        background: linear-gradient(45deg, #ffee58, #fdd835);
+        color: #333;
+        padding: 15px;
+        border-radius: 10px;
+        margin-top: 10px;
+        animation: celebrate 0.5s ease-in-out;
+    }
+
+    @keyframes celebrate {
+        0% { transform: scale(0.8); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+
+    .setup-mode {
+        background: linear-gradient(45deg, #fbc02d, #fdd835);
+        color: #333;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        text-align: center;
+        font-weight: bold;
+    }
+
+    .rectangular-controls {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    @media (max-width: 768px) {
+        .header h1 {
+            font-size: 2rem;
+        }
+
+        .cell {
+            width: 35px;
+            height: 35px;
+        }
+
+        .controls {
+            width: 100%;
+            max-width: 400px;
+        }
+    }
+</style>
+
+<body>
+    <div class="header">
+        <h1> Peg Solitaire</h1>
+        <p>Jump pegs to remove them. Goal: Leave only one peg!</p>
+    </div>
+
+    <div class="controls">
+        <div class="control-group">
+            <label for="boardType">Board Type:</label>
+            <select id="boardType">
+                <option value="classic">Classic (English)</option>
+                <option value="european">European (French)</option>
+                <option value="asymmetric">Asymmetric</option>
+                <option value="german">German</option>
+                <option value="rectangular">Rectangular (Custom)</option>
+            </select>
+        </div>
+
+        <div id="rectangularControls" class="rectangular-controls" style="display: none;">
+            <div>
+                <label for="boardWidth">Width (3-5):</label>
+                <select id="boardWidth">
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                </select>
+            </div>
+            <div>
+                <label for="boardHeight">Height (3-5):</label>
+                <select id="boardHeight">
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <button id="newGameBtn">New Game</button>
+            <button id="resetBtn" disabled>Reset</button>
+            <button id="undoBtn" disabled>Undo</button>
+            <button id="redoBtn" disabled>Redo</button>
+        </div>
+    </div>
+
+    <div id="setupMode" class="setup-mode" style="display: none;">
+          Setup Mode: Click on a peg to make it the starting empty spot, then click "Start Game"
+    <br><small>Note: Only one empty spot is allowed</small>
+        <br><button id="startGameBtn" style="margin-top: 10px;">Start Game</button>
+    </div>
+
+    <div class="game-container">
+        <div class="board">
+            <div id="gameBoard" class="board-grid"></div>
+        </div>
+
+        <div class="game-info">
+            <h3>Game Status</h3>
+            <div class="status">
+                Pegs remaining: <span id="pegCount">0</span>
+            </div>
+            <div class="status">
+                Moves made: <span id="moveCount">0</span>
+            </div>
+            <div id="gameStatus"></div>
+        </div>
+    </div>
+
+    <script>
+        class PegSolitaire {
+            constructor() {
+                this.board = [];
+                this.selectedCell = null;
+                this.gameState = 'setup'; // 'setup', 'playing', 'won', 'lost'
+                this.moveHistory = [];
+                this.redoHistory = [];
+                this.pegCount = 0;
+                this.moveCount = 0;
+                
+                this.initializeElements();
+                this.setupEventListeners();
+                this.createBoard();
+            }
+
+            initializeElements() {
+                this.boardElement = document.getElementById('gameBoard');
+                this.boardTypeSelect = document.getElementById('boardType');
+                this.widthSelect = document.getElementById('boardWidth');
+                this.heightSelect = document.getElementById('boardHeight');
+                this.rectangularControls = document.getElementById('rectangularControls');
+                this.setupModeDiv = document.getElementById('setupMode');
+                this.newGameBtn = document.getElementById('newGameBtn');
+                this.resetBtn = document.getElementById('resetBtn');
+                this.undoBtn = document.getElementById('undoBtn');
+                this.redoBtn = document.getElementById('redoBtn');
+                this.startGameBtn = document.getElementById('startGameBtn');
+                this.pegCountSpan = document.getElementById('pegCount');
+                this.moveCountSpan = document.getElementById('moveCount');
+                this.gameStatusDiv = document.getElementById('gameStatus');
+            }
+
+            setupEventListeners() {
+                this.boardTypeSelect.addEventListener('change', () => {
+                    this.rectangularControls.style.display = 
+                        this.boardTypeSelect.value === 'rectangular' ? 'grid' : 'none';
+                    this.createBoard();
+                });
+
+                this.widthSelect.addEventListener('change', () => {
+                    if (this.boardTypeSelect.value === 'rectangular') {
+                        this.createBoard();
+                    }
+                });
+
+                this.heightSelect.addEventListener('change', () => {
+                    if (this.boardTypeSelect.value === 'rectangular') {
+                        this.createBoard();
+                    }
+                });
+
+                this.newGameBtn.addEventListener('click', () => this.createBoard());
+                this.resetBtn.addEventListener('click', () => this.resetGame());
+                this.undoBtn.addEventListener('click', () => this.undoMove());
+                this.redoBtn.addEventListener('click', () => this.redoMove());
+                this.startGameBtn.addEventListener('click', () => this.startGame());
+            }
+
+            getBoardLayout(type) {
+                const layouts = {
+                    classic: [
+                        [-1,-1,1,1,1,-1,-1],
+                        [-1,-1,1,1,1,-1,-1],
+                        [1,1,1,1,1,1,1],
+                        [1,1,1,0,1,1,1],
+                        [1,1,1,1,1,1,1],
+                        [-1,-1,1,1,1,-1,-1],
+                        [-1,-1,1,1,1,-1,-1]
+                    ],
+                    european: [
+                        [-1,-1,1,1,1,-1,-1],
+                        [-1,1,1,1,1,1,-1],
+                        [1,1,1,1,1,1,1],
+                        [1,1,1,0,1,1,1],
+                        [1,1,1,1,1,1,1],
+                        [-1,1,1,1,1,1,-1],
+                        [-1,-1,1,1,1,-1,-1]
+                    ],
+                    asymmetric: [
+                        [-1,-1,1,1,1,-1,-1],
+                        [-1,-1,1,1,1,-1,-1],
+                        [1,1,1,1,1,1,-1],
+                        [1,1,1,0,1,1,1],
+                        [1,1,1,1,1,1,1],
+                        [-1,-1,1,1,1,-1,-1],
+                        [-1,-1,1,1,1,-1,-1]
+                    ],
+                    german: [
+                        [-1,-1,-1,1,1,1,-1,-1,-1],
+                        [-1,-1,-1,1,1,1,-1,-1,-1],
+                        [-1,-1,-1,1,1,1,-1,-1,-1],
+                        [1,1,1,1,1,1,1,1,1],
+                        [1,1,1,1,0,1,1,1,1],
+                        [1,1,1,1,1,1,1,1,1],
+                        [-1,-1,-1,1,1,1,-1,-1,-1],
+                        [-1,-1,-1,1,1,1,-1,-1,-1],
+                        [-1,-1,-1,1,1,1,-1,-1,-1]
+                    ]
+                };
+
+                if (type === 'rectangular') {
+                    const width = parseInt(this.widthSelect.value);
+                    const height = parseInt(this.heightSelect.value);
+                    const layout = [];
+                    for (let i = 0; i < height; i++) {
+                        const row = [];
+                        for (let j = 0; j < width; j++) {
+                            row.push(1);
+                        }
+                        layout.push(row);
+                    }
+                    // Make center cell empty for rectangular boards
+                    const centerRow = Math.floor(height / 2);
+                    const centerCol = Math.floor(width / 2);
+                    layout[centerRow][centerCol] = 0;
+                    return layout;
+                }
+
+                return layouts[type] || layouts.classic;
+            }
+
+            createBoard() {
+                const boardType = this.boardTypeSelect.value;
+                const layout = this.getBoardLayout(boardType);
+                
+                this.board = layout.map(row => [...row]);
+                this.gameState = 'setup';
+                this.selectedCell = null;
+                this.moveHistory = [];
+                this.redoHistory = [];
+                this.moveCount = 0;
+                
+                this.renderBoard();
+                this.updateUI();
+                this.showSetupMode();
+            }
+
+            renderBoard() {
+                const rows = this.board.length;
+                const cols = this.board[0].length;
+                
+                this.boardElement.style.gridTemplateColumns = `repeat(${cols}, 40px)`;
+                this.boardElement.innerHTML = '';
+
+                for (let row = 0; row < rows; row++) {
+                    for (let col = 0; col < cols; col++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'cell';
+                        cell.dataset.row = row;
+                        cell.dataset.col = col;
+
+                        if (this.board[row][col] === -1) {
+                            cell.classList.add('invisible');
+                        } else if (this.board[row][col] === 0) {
+                            cell.classList.add('empty');
+                        } else if (this.board[row][col] === 1) {
+                            cell.classList.add('peg');
+                        }
+
+                        if (this.board[row][col] !== -1) {
+                            cell.addEventListener('click', (e) => this.handleCellClick(e));
+                        }
+
+                        this.boardElement.appendChild(cell);
+                    }
+                }
+            }
+
+            handleCellClick(event) {
+                const row = parseInt(event.target.dataset.row);
+                const col = parseInt(event.target.dataset.col);
+
+                if (this.gameState === 'setup') {
+                    this.handleSetupClick(row, col);
+                } else if (this.gameState === 'playing') {
+                    this.handleGameClick(row, col);
+                }
+            }
+
+            handleSetupClick(row, col) {
+                // Count current empty cells
+                const emptyCount = this.countEmptyCells();
+                
+                if (this.board[row][col] === 1) {
+                    // Can only remove a peg if there are no empty cells, or if this creates the only empty cell
+                    if (emptyCount === 0) {
+                        this.board[row][col] = 0;
+                    }
+                } else if (this.board[row][col] === 0) {
+                    // Can only add a peg if this was the only empty cell
+                    if (emptyCount === 1) {
+                        this.board[row][col] = 1;
+                    }
+                }
+                this.renderBoard();
+                this.updateUI();
+            }
+
+            handleGameClick(row, col) {
+                if (this.board[row][col] === 1) {
+                    // Select a peg
+                    this.clearSelection();
+                    this.selectedCell = { row, col };
+                    this.highlightValidMoves();
+                    this.renderBoard();
+                } else if (this.board[row][col] === 0 && this.selectedCell) {
+                    // Try to move to empty cell
+                    this.attemptMove(row, col);
+                }
+            }
+
+            clearSelection() {
+                this.selectedCell = null;
+                document.querySelectorAll('.cell').forEach(cell => {
+                    cell.classList.remove('selected', 'valid-move', 'invalid-move');
+                });
+            }
+
+            highlightValidMoves() {
+                if (!this.selectedCell) return;
+
+                const { row, col } = this.selectedCell;
+                document.querySelector(`[data-row="${row}"][data-col="${col}"]`).classList.add('selected');
+
+                const directions = [[-2, 0], [2, 0], [0, -2], [0, 2]];
+                
+                directions.forEach(([dRow, dCol]) => {
+                    const newRow = row + dRow;
+                    const newCol = col + dCol;
+                    const midRow = row + dRow / 2;
+                    const midCol = col + dCol / 2;
+
+                    if (this.isValidMove(row, col, newRow, newCol)) {
+                        const targetCell = document.querySelector(`[data-row="${newRow}"][data-col="${newCol}"]`);
+                        if (targetCell) {
+                            targetCell.classList.add('valid-move');
+                        }
+                    }
+                });
+            }
+
+            isValidMove(fromRow, fromCol, toRow, toCol) {
+                // Check bounds
+                if (toRow < 0 || toRow >= this.board.length || 
+                    toCol < 0 || toCol >= this.board[0].length) {
+                    return false;
+                }
+
+                // Check if target is empty
+                if (this.board[toRow][toCol] !== 0) {
+                    return false;
+                }
+
+                // Check if there's a peg to jump over
+                const midRow = fromRow + (toRow - fromRow) / 2;
+                const midCol = fromCol + (toCol - fromCol) / 2;
+
+                return this.board[midRow] && this.board[midRow][midCol] === 1;
+            }
+
+            attemptMove(toRow, toCol) {
+                const { row: fromRow, col: fromCol } = this.selectedCell;
+
+                if (this.isValidMove(fromRow, fromCol, toRow, toCol)) {
+                    const midRow = fromRow + (toRow - fromRow) / 2;
+                    const midCol = fromCol + (toCol - fromCol) / 2;
+
+                    // Save move for undo
+                    this.moveHistory.push({
+                        from: { row: fromRow, col: fromCol },
+                        to: { row: toRow, col: toCol },
+                        jumped: { row: midRow, col: midCol }
+                    });
+
+                    // Clear redo history when a new move is made
+                    this.redoHistory = [];
+
+                    // Execute move
+                    this.board[fromRow][fromCol] = 0;
+                    this.board[midRow][midCol] = 0;
+                    this.board[toRow][toCol] = 1;
+
+                    this.moveCount++;
+                    this.clearSelection();
+                    this.renderBoard();
+                    this.updateUI();
+                    this.checkGameEnd();
+                }
+            }
+
+            undoMove() {
+                if (this.moveHistory.length === 0) return;
+
+                const lastMove = this.moveHistory.pop();
+                const { from, to, jumped } = lastMove;
+
+                // Save the move to redo history
+                this.redoHistory.push(lastMove);
+
+                // Reverse the move
+                this.board[from.row][from.col] = 1;
+                this.board[jumped.row][jumped.col] = 1;
+                this.board[to.row][to.col] = 0;
+
+                this.moveCount--;
+                this.clearSelection();
+                this.renderBoard();
+                this.updateUI();
+                this.gameStatusDiv.innerHTML = '';
+            }
+
+            redoMove() {
+                if (this.redoHistory.length === 0) return;
+
+                const moveToRedo = this.redoHistory.pop();
+                const { from, to, jumped } = moveToRedo;
+
+                // Save the move back to move history
+                this.moveHistory.push(moveToRedo);
+
+                // Execute the move again
+                this.board[from.row][from.col] = 0;
+                this.board[jumped.row][jumped.col] = 0;
+                this.board[to.row][to.col] = 1;
+
+                this.moveCount++;
+                this.clearSelection();
+                this.renderBoard();
+                this.updateUI();
+                this.checkGameEnd();
+            }
+
+            checkGameEnd() {
+                this.pegCount = this.countPegs();
+                
+                if (this.pegCount === 1) {
+                    this.gameState = 'won';
+                    this.gameStatusDiv.innerHTML = '<div class="win-message">🎉 Congratulations! You won! 🎉</div>';
+                } else if (!this.hasValidMoves()) {
+                    this.gameState = 'lost';
+                    this.gameStatusDiv.innerHTML = '<div style="background: linear-gradient(45deg, #ff6b6b, #ee5a24); color: white; padding: 15px; border-radius: 10px; margin-top: 10px;">😞 No more moves available. Try again!</div>';
+                }
+            }
+
+            countPegs() {
+                return this.board.flat().filter(cell => cell === 1).length;
+            }
+
+            countEmptyCells() {
+                return this.board.flat().filter(cell => cell === 0).length;
+            }
+
+            hasValidMoves() {
+                for (let row = 0; row < this.board.length; row++) {
+                    for (let col = 0; col < this.board[0].length; col++) {
+                        if (this.board[row][col] === 1) {
+                            const directions = [[-2, 0], [2, 0], [0, -2], [0, 2]];
+                            for (const [dRow, dCol] of directions) {
+                                if (this.isValidMove(row, col, row + dRow, col + dCol)) {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+                return false;
+            }
+
+            showSetupMode() {
+                this.setupModeDiv.style.display = 'block';
+                this.resetBtn.disabled = true;
+                this.undoBtn.disabled = true;
+                this.redoBtn.disabled = true;
+            }
+
+            startGame() {
+                const emptyCount = this.countEmptyCells();
+                if (emptyCount !== 1) {
+                    alert('Please ensure exactly one cell is empty before starting the game!');
+                    return;
+                }
+                
+                this.gameState = 'playing';
+                this.setupModeDiv.style.display = 'none';
+                this.resetBtn.disabled = false;
+                this.updateUI();
+            }
+
+            resetGame() {
+                this.createBoard();
+            }
+
+            updateUI() {
+                this.pegCount = this.countPegs();
+                this.pegCountSpan.textContent = this.pegCount;
+                this.moveCountSpan.textContent = this.moveCount;
+                this.undoBtn.disabled = this.moveHistory.length === 0;
+                this.redoBtn.disabled = this.redoHistory.length === 0;
+            }
+        }
+
+        // Initialize the game when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new PegSolitaire();
+        });
+    </script>
+</body>
+</html>
