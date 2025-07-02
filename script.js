@@ -1,3 +1,9 @@
+// This file is now split into modules:
+// - pegSolitaire.js
+// - trianglePegSolitaire.js
+// - main.js
+// The original script.js is no longer used. See the new files for the modular code.
+
 class PegSolitaire {
             constructor() {
                 this.board = [];
