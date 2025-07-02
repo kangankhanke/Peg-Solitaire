@@ -1,5 +1,4 @@
-
-    * {
+* {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
@@ -217,6 +216,85 @@ button:hover {
         grid-template-columns: 1fr 1fr;
         gap: 10px;
         margin-top: 10px;
+    }
+
+    /* Triangle board styles */
+    .triangle-board {
+        margin: 0 auto;
+        position: relative;
+    }
+
+    .hole {
+        position: absolute;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 30% 30%, #8d6e63, #5d4037);
+        border: 2px solid #3e2723;
+        box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.3);
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .hole:hover {
+        box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.3), 0 0 8px rgba(255, 193, 7, 0.5);
+    }
+
+    .hole .peg {
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 30% 30%, #ffd54f, #ff8f00);
+        border: 2px solid #e65100;
+        cursor: grab;
+        transition: all 0.2s ease;
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    .hole .peg:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .hole .peg.selected {
+        background: radial-gradient(circle at 30% 30%, #4caf50, #2e7d32);
+        border-color: #1b5e20;
+        transform: scale(1.15);
+        box-shadow: 0 0 12px rgba(76, 175, 80, 0.6);
+    }
+
+    .hole .peg.dragging {
+        opacity: 0.7;
+        transform: scale(1.2);
+        z-index: 1000;
+    }
+
+    .hole.valid-drop {
+        background: radial-gradient(circle at 30% 30%, #81c784, #4caf50);
+        box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.3), 0 0 12px rgba(76, 175, 80, 0.8);
+    }
+
+    .game-status {
+        text-align: center;
+        margin-top: 20px;
+        padding: 10px;
+        border-radius: 8px;
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
+
+    .game-status.win {
+        background: linear-gradient(45deg, #4caf50, #8bc34a);
+        color: white;
+        animation: celebrate 0.5s ease;
+    }
+
+    .game-status.lose {
+        background: linear-gradient(45deg, #f44336, #ff7043);
+        color: white;
     }
 
     @media (max-width: 768px) {

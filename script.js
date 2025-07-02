@@ -97,20 +97,7 @@ getBoardLayout(type) {
                         [-1,-1,-1,1,1,1,-1,-1,-1],
                         [-1,-1,-1,1,1,1,-1,-1,-1]
                     ],
-                    pyramid: [
-                        [-1,-1,1,-1,-1],
-                        [-1,1,1,-1],
-                        [-1,1,1,1,-1],
-                        [1,1,1,1],
-                        [1,1,1,1,1]
-                    ],
-                    star: [
-                       [-1,-1,1,-1,-1],
-                       [1,1,1,1],
-                       [-1,1,1,1,-1],
-                       [1,1,1,1],
-                       [-1,-1,1,-1,-1]
-                    ]
+
                     
                 };
 
@@ -137,6 +124,35 @@ getBoardLayout(type) {
 
             createBoard() {
                 const boardType = this.boardTypeSelect.value;
+                
+                // Delegate pyramid to TrianglePegSolitaire and star to StarPegSolitaire
+                if (boardType === 'pyramid') {
+                    if (this.triangleGame) {
+                        this.triangleGame.switchBoard(boardType);
+                    } else {
+                        this.triangleGame = new TrianglePegSolitaire(boardType);
+                    }
+                    this.boardElement.style.display = 'none';
+                    return;
+                } else if (boardType === 'star') {
+                    if (this.starGame) {
+                        this.starGame.reset();
+                    } else {
+                        this.starGame = new StarPegSolitaire();
+                    }
+                    this.boardElement.style.display = 'none';
+                    return;
+                } else {
+                    // Hide triangle and star games if switching back to regular boards
+                    if (this.triangleGame) {
+                        const triangleBoard = document.getElementById('board');
+                        if (triangleBoard) {
+                            triangleBoard.style.display = 'none';
+                        }
+                    }
+                    this.boardElement.style.display = 'grid';
+                }
+                
                 const layout = this.getBoardLayout(boardType);
                 
                 this.board = layout.map(row => [...row]);
@@ -153,26 +169,16 @@ getBoardLayout(type) {
             }
 
           renderBoard() {
-    const boardType = this.boardTypeSelect.value;
     const rows = this.board.length;
-    const isTriangle = (boardType === 'pyramid' || boardType === 'star');
 
     this.boardElement.innerHTML = '';
-    this.boardElement.style.display = isTriangle ? 'block' : 'grid';
-    if (!isTriangle) {
-        const cols = this.board[0].length;
-        this.boardElement.style.gridTemplateColumns = `repeat(${cols}, 40px)`;
-        this.boardElement.style.position = '';
-        this.boardElement.style.width = '';
-        this.boardElement.style.height = '';
-    }
-
-    // For triangle boards, set container size and position
-    if (isTriangle) {
-        this.boardElement.style.position = 'relative';
-        this.boardElement.style.width = '320px';   // Adjust as needed
-        this.boardElement.style.height = '260px';  // Adjust as needed
-    }
+    this.boardElement.style.display = 'grid';
+    
+    const cols = this.board[0].length;
+    this.boardElement.style.gridTemplateColumns = `repeat(${cols}, 40px)`;
+    this.boardElement.style.position = '';
+    this.boardElement.style.width = '';
+    this.boardElement.style.height = '';
 
     for (let row = 0; row < rows; row++) {
         const cols = this.board[row].length;
@@ -192,20 +198,6 @@ getBoardLayout(type) {
 
             if (this.board[row][col] !== -1) {
                 cell.addEventListener('click', (e) => this.handleCellClick(e));
-            }
-
-            // For triangle boards, visually stagger and center each row
-            if (isTriangle) {
-                const cellSize = 40; // px
-                const totalWidth = this.boardElement.clientWidth || 320;
-                const rowWidth = cols * cellSize;
-                const leftOffset = (totalWidth - rowWidth) / 2 + col * cellSize;
-
-                cell.style.position = 'absolute';
-                cell.style.left = `${leftOffset}px`;
-                cell.style.top = `${row * cellSize + 10}px`;
-                cell.style.width = '36px';
-                cell.style.height = '36px';
             }
 
             this.boardElement.appendChild(cell);
@@ -263,18 +255,6 @@ getBoardLayout(type) {
                 });
             }
            getMoveDirections() {
-            const boardType = this.boardTypeSelect.value;
-            if (boardType === 'pyramid' || boardType === 'star') {
-                // 6 directions for triangle grid
-                return [
-                    [0, -2],    // left
-                    [0, 2],     // right
-                    [-2, -2],   // up-left
-                    [-2, 2],    // up-right
-                    [2, -2],    // down-left
-                    [2, 2]      // down-right
-                ];
-            } else {
                 // 4 directions for classic boards
                 return [
                     [-2, 0],   // up
@@ -283,7 +263,6 @@ getBoardLayout(type) {
                     [0, 2]     // right
                 ];
             }
-        }
             highlightValidMoves() {
                 if (!this.selectedCell) return;
 
@@ -308,55 +287,6 @@ getBoardLayout(type) {
             }
 
             isValidMove(fromRow, fromCol, toRow, toCol) {
-                const boardType = this.boardTypeSelect.value;
-
-                // --- TRIANGLE BOARDS (pyramid/star) ---
-                if (boardType === 'pyramid' || boardType === 'star') {
-                    // Check bounds
-                    if (
-                        toRow < 0 || toRow >= this.board.length ||
-                        toCol < 0 || toCol >= this.board[toRow].length
-                    ) {
-                        return false;
-                    }
-                    // Check if target is empty
-                    if (this.board[toRow][toCol] !== 0) {
-                        return false;
-                    }
-                    const rowDiff = toRow - fromRow;
-                    const colDiff = toCol - fromCol;
-
-                    // Only allow moves in the 6 triangle directions
-                    // Horizontal: [0, -2], [0, 2]
-                    // Up-left: [-2, -2], Up-right: [-2, 2]
-                    // Down-left: [2, -2], Down-right: [2, 2]
-                    let midRow, midCol;
-                    if (rowDiff === 0 && Math.abs(colDiff) === 2) {
-                        // Horizontal
-                        midRow = fromRow;
-                        midCol = fromCol + colDiff / 2;
-                    } else if (rowDiff === -2 && Math.abs(colDiff) === 2) {
-                        // Up-left or up-right
-                        midRow = fromRow - 1;
-                        midCol = fromCol + colDiff / 2;
-                    } else if (rowDiff === 2 && Math.abs(colDiff) === 2) {
-                        // Down-left or down-right
-                        midRow = fromRow + 1;
-                        midCol = fromCol + colDiff / 2;
-                    } else {
-                        return false;
-                    }
-                    // Check mid cell is in bounds and is a peg
-                    if (
-                        midRow < 0 || midRow >= this.board.length ||
-                        midCol < 0 || midCol >= this.board[midRow].length
-                    ) {
-                        return false;
-                    }
-                    return this.board[midRow][midCol] === 1;
-                }
-
-                // --- RECTANGULAR BOARDS (classic, european, etc) ---
                 // Check bounds
                 if (
                     toRow < 0 || toRow >= this.board.length ||
@@ -539,34 +469,22 @@ class TrianglePegSolitaire {
         this.selectedPeg = null;
         this.pegCount = 0;
         this.gameOver = false;
-        this.boardConfigs = {
-            pyramid: {
-                name: 'Pyramid',
-                initialPegs: 14,
-                boardWidth: 480,
-                boardHeight: 400
-            },
-            star: {
-                name: 'Star',
-                initialPegs: 36,
-                boardWidth: 480,
-                boardHeight: 400
-            }
+        this.boardConfig = {
+            name: 'Pyramid',
+            initialPegs: 14,
+            boardWidth: 480,
+            boardHeight: 400
         };
-        this.currentBoard = 'pyramid'; // default to pyramid
+        this.currentBoard = 'pyramid';
         this.initializeBoard();
         this.renderBoard();
         this.updateDisplay();
     }
 
     initializeBoard() {
-            if (this.currentBoard === 'pyramid') {
-                this.initializePyramidBoard();
-            } else if (this.currentBoard === 'star') {
-                this.initializeStarBoard();
-            }
-            this.pegCount = this.boardConfigs[this.currentBoard].initialPegs;
-        }
+        this.initializePyramidBoard();
+        this.pegCount = this.boardConfig.initialPegs;
+    }
 
         initializePyramidBoard() {
             // Pyramid layout: 5 rows with top hole empty
@@ -579,63 +497,9 @@ class TrianglePegSolitaire {
             ];
         }
 
-        initializeStarBoard() {
-            // Star layout with 36 holes (all filled except center)
-            this.board = [];
-            const centerX = 250;
-            const centerY = 250;
-            const spacing = 60;
-            
-            // Create star pattern with 6 points
-            const starPoints = [
-                // Top point
-                [{ hasPeg: true, x: centerX, y: centerY - spacing * 3 }],
-                [{ hasPeg: true, x: centerX - spacing/2, y: centerY - spacing * 2 }, 
-                 { hasPeg: true, x: centerX + spacing/2, y: centerY - spacing * 2 }],
-                
-                // Upper left and right arms
-                [{ hasPeg: true, x: centerX - spacing * 2.5, y: centerY - spacing * 1.5 },
-                 { hasPeg: true, x: centerX - spacing, y: centerY - spacing },
-                 { hasPeg: false, x: centerX, y: centerY }, // Center empty
-                 { hasPeg: true, x: centerX + spacing, y: centerY - spacing },
-                 { hasPeg: true, x: centerX + spacing * 2.5, y: centerY - spacing * 1.5 }],
-                
-                // Middle section
-                [{ hasPeg: true, x: centerX - spacing * 3, y: centerY - spacing/2 },
-                 { hasPeg: true, x: centerX - spacing * 2, y: centerY },
-                 { hasPeg: true, x: centerX - spacing, y: centerY },
-                 { hasPeg: true, x: centerX + spacing, y: centerY },
-                 { hasPeg: true, x: centerX + spacing * 2, y: centerY },
-                 { hasPeg: true, x: centerX + spacing * 3, y: centerY - spacing/2 }],
-                
-                // Lower middle
-                [{ hasPeg: true, x: centerX - spacing * 2.5, y: centerY + spacing/2 },
-                 { hasPeg: true, x: centerX - spacing * 1.5, y: centerY + spacing },
-                 { hasPeg: true, x: centerX - spacing/2, y: centerY + spacing },
-                 { hasPeg: true, x: centerX + spacing/2, y: centerY + spacing },
-                 { hasPeg: true, x: centerX + spacing * 1.5, y: centerY + spacing },
-                 { hasPeg: true, x: centerX + spacing * 2.5, y: centerY + spacing/2 }],
-                
-                // Lower arms
-                [{ hasPeg: true, x: centerX - spacing * 2, y: centerY + spacing * 1.5 },
-                 { hasPeg: true, x: centerX - spacing, y: centerY + spacing * 2 },
-                 { hasPeg: true, x: centerX, y: centerY + spacing * 2 },
-                 { hasPeg: true, x: centerX + spacing, y: centerY + spacing * 2 },
-                 { hasPeg: true, x: centerX + spacing * 2, y: centerY + spacing * 1.5 }],
-                
-                // Bottom points
-                [{ hasPeg: true, x: centerX - spacing * 1.5, y: centerY + spacing * 2.5 },
-                 { hasPeg: true, x: centerX + spacing * 1.5, y: centerY + spacing * 2.5 }],
-                [{ hasPeg: true, x: centerX - spacing, y: centerY + spacing * 3 },
-                 { hasPeg: true, x: centerX + spacing, y: centerY + spacing * 3 }],
-                [{ hasPeg: true, x: centerX, y: centerY + spacing * 3.5 }]
-            ];
-            
-            this.board = starPoints;
-        }
-
         switchBoard(boardType) {
-            this.currentBoard = boardType;
+            // Only pyramid is supported now
+            this.currentBoard = 'pyramid';
             this.gameOver = false;
             this.selectedPeg = null;
             this.initializeBoard();
@@ -645,12 +509,19 @@ class TrianglePegSolitaire {
 
         renderBoard() {
             const boardElement = document.getElementById('board');
+            const gameBoard = document.getElementById('gameBoard');
+            
+            // Show triangle board, hide regular board
+            boardElement.style.display = 'block';
+            if (gameBoard) {
+                gameBoard.style.display = 'none';
+            }
+            
             boardElement.innerHTML = '';
             boardElement.style.position = 'relative';
             
-            const config = this.boardConfigs[this.currentBoard];
-            boardElement.style.width = config.boardWidth + 'px';
-            boardElement.style.height = config.boardHeight + 'px';
+            boardElement.style.width = this.boardConfig.boardWidth + 'px';
+            boardElement.style.height = this.boardConfig.boardHeight + 'px';
 
             for (let row = 0; row < this.board.length; row++) {
                 for (let col = 0; col < this.board[row].length; col++) {
@@ -826,7 +697,291 @@ class TrianglePegSolitaire {
 
         updateDisplay() {
             document.getElementById('pegCount').textContent = this.pegCount;
-            document.getElementById('boardName').textContent = this.boardConfigs[this.currentBoard].name;
+            document.getElementById('boardName').textContent = this.boardConfig.name;
+        }
+
+        checkGameStatus() {
+            const statusElement = document.getElementById('gameStatus');
+            
+            if (this.pegCount === 1) {
+                statusElement.textContent = '🎉 Perfect! You won with only 1 peg remaining!';
+                statusElement.className = 'game-status win';
+                this.gameOver = true;
+            } else if (!this.hasValidMoves()) {
+                statusElement.textContent = `😔 No more moves! Final score: ${this.pegCount} pegs remaining`;
+                statusElement.className = 'game-status lose';
+                this.gameOver = true;
+            } else {
+                statusElement.textContent = '';
+                statusElement.className = 'game-status';
+            }
+        }
+
+        hasValidMoves() {
+            for (let row = 0; row < this.board.length; row++) {
+                for (let col = 0; col < this.board[row].length; col++) {
+                    if (this.board[row][col].hasPeg) {
+                        // Check all possible moves from this position
+                        for (let targetRow = 0; targetRow < this.board.length; targetRow++) {
+                            for (let targetCol = 0; targetCol < this.board[targetRow].length; targetCol++) {
+                                if (this.isValidMove(row, col, targetRow, targetCol)) {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        reset() {
+            this.gameOver = false;
+            this.selectedPeg = null;
+            this.initializeBoard();
+            this.renderBoard();
+            this.updateDisplay();
+            document.getElementById('gameStatus').textContent = '';
+            document.getElementById('gameStatus').className = 'game-status';
+        }
+    }
+
+    class StarPegSolitaire {
+        constructor() {
+            this.board = [];
+            this.selectedPeg = null;
+            this.pegCount = 0;
+            this.gameOver = false;
+            this.boardConfig = {
+                name: 'Star',
+                initialPegs: 12,
+                boardWidth: 480,
+                boardHeight: 400
+            };
+            this.initializeBoard();
+            this.renderBoard();
+            this.updateDisplay();
+        }
+
+        initializeBoard() {
+            // Star/cross layout: 13 holes in rows 1,4,3,4,1 with top hole empty
+            this.board = [];
+            const centerX = 240;
+            const centerY = 200;
+            const spacing = 50;
+            
+            // Create star pattern: 1,4,3,4,1 holes per row
+            this.board = [
+                // Row 1: 1 hole (top) - empty to start
+                [{ hasPeg: false, x: centerX, y: centerY - spacing * 2 }],
+                
+                // Row 2: 4 holes 
+                [{ hasPeg: true, x: centerX - spacing * 1.5, y: centerY - spacing },
+                 { hasPeg: true, x: centerX - spacing * 0.5, y: centerY - spacing },
+                 { hasPeg: true, x: centerX + spacing * 0.5, y: centerY - spacing },
+                 { hasPeg: true, x: centerX + spacing * 1.5, y: centerY - spacing }],
+                
+                // Row 3: 3 holes (middle row)
+                [{ hasPeg: true, x: centerX - spacing, y: centerY },
+                 { hasPeg: true, x: centerX, y: centerY },
+                 { hasPeg: true, x: centerX + spacing, y: centerY }],
+                
+                // Row 4: 4 holes
+                [{ hasPeg: true, x: centerX - spacing * 1.5, y: centerY + spacing },
+                 { hasPeg: true, x: centerX - spacing * 0.5, y: centerY + spacing },
+                 { hasPeg: true, x: centerX + spacing * 0.5, y: centerY + spacing },
+                 { hasPeg: true, x: centerX + spacing * 1.5, y: centerY + spacing }],
+                
+                // Row 5: 1 hole (bottom)
+                [{ hasPeg: true, x: centerX, y: centerY + spacing * 2 }]
+            ];
+            
+            this.pegCount = this.boardConfig.initialPegs;
+        }
+
+        renderBoard() {
+            const boardElement = document.getElementById('board');
+            const gameBoard = document.getElementById('gameBoard');
+            
+            // Show star board, hide regular board
+            boardElement.style.display = 'block';
+            if (gameBoard) {
+                gameBoard.style.display = 'none';
+            }
+            
+            boardElement.innerHTML = '';
+            boardElement.style.position = 'relative';
+            boardElement.style.width = this.boardConfig.boardWidth + 'px';
+            boardElement.style.height = this.boardConfig.boardHeight + 'px';
+
+            for (let row = 0; row < this.board.length; row++) {
+                for (let col = 0; col < this.board[row].length; col++) {
+                    const hole = this.board[row][col];
+                    const holeElement = document.createElement('div');
+                    holeElement.className = 'hole';
+                    holeElement.style.left = hole.x + 'px';
+                    holeElement.style.top = hole.y + 'px';
+                    holeElement.dataset.row = row;
+                    holeElement.dataset.col = col;
+
+                    if (hole.hasPeg) {
+                        const pegElement = document.createElement('div');
+                        pegElement.className = 'peg';
+                        pegElement.draggable = true;
+                        pegElement.dataset.row = row;
+                        pegElement.dataset.col = col;
+                        
+                        pegElement.addEventListener('dragstart', (e) => this.handleDragStart(e));
+                        pegElement.addEventListener('dragend', (e) => this.handleDragEnd(e));
+                        pegElement.addEventListener('click', (e) => this.handlePegClick(e));
+                        
+                        holeElement.appendChild(pegElement);
+                    }
+
+                    holeElement.addEventListener('dragover', (e) => this.handleDragOver(e));
+                    holeElement.addEventListener('drop', (e) => this.handleDrop(e));
+                    holeElement.addEventListener('click', (e) => this.handleHoleClick(e));
+
+                    boardElement.appendChild(holeElement);
+                }
+            }
+        }
+
+        handlePegClick(e) {
+            e.stopPropagation();
+            const row = parseInt(e.target.dataset.row);
+            const col = parseInt(e.target.dataset.col);
+            
+            if (this.selectedPeg) {
+                this.selectedPeg.classList.remove('selected');
+            }
+            
+            this.selectedPeg = e.target;
+            this.selectedPeg.classList.add('selected');
+            this.selectedPeg.dataset.selectedRow = row;
+            this.selectedPeg.dataset.selectedCol = col;
+        }
+
+        handleHoleClick(e) {
+            if (this.selectedPeg && !e.target.querySelector('.peg')) {
+                const fromRow = parseInt(this.selectedPeg.dataset.selectedRow);
+                const fromCol = parseInt(this.selectedPeg.dataset.selectedCol);
+                const toRow = parseInt(e.target.dataset.row);
+                const toCol = parseInt(e.target.dataset.col);
+                
+                if (this.isValidMove(fromRow, fromCol, toRow, toCol)) {
+                    this.makeMove(fromRow, fromCol, toRow, toCol);
+                }
+                
+                this.selectedPeg.classList.remove('selected');
+                this.selectedPeg = null;
+            }
+        }
+
+        handleDragStart(e) {
+            const row = parseInt(e.target.dataset.row);
+            const col = parseInt(e.target.dataset.col);
+            e.dataTransfer.setData('text/plain', `${row},${col}`);
+            e.target.classList.add('dragging');
+        }
+
+        handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+            this.clearValidDrops();
+        }
+
+        handleDragOver(e) {
+            e.preventDefault();
+            const dragData = e.dataTransfer.getData('text/plain');
+            if (dragData) {
+                const [fromRow, fromCol] = dragData.split(',').map(Number);
+                const toRow = parseInt(e.target.dataset.row);
+                const toCol = parseInt(e.target.dataset.col);
+                
+                if (this.isValidMove(fromRow, fromCol, toRow, toCol)) {
+                    e.target.classList.add('valid-drop');
+                }
+            }
+        }
+
+        handleDrop(e) {
+            e.preventDefault();
+            const dragData = e.dataTransfer.getData('text/plain');
+            const [fromRow, fromCol] = dragData.split(',').map(Number);
+            const toRow = parseInt(e.target.dataset.row);
+            const toCol = parseInt(e.target.dataset.col);
+            
+            if (this.isValidMove(fromRow, fromCol, toRow, toCol)) {
+                this.makeMove(fromRow, fromCol, toRow, toCol);
+            }
+            
+            this.clearValidDrops();
+        }
+
+        clearValidDrops() {
+            document.querySelectorAll('.valid-drop').forEach(hole => {
+                hole.classList.remove('valid-drop');
+            });
+        }
+
+        isValidMove(fromRow, fromCol, toRow, toCol) {
+            if (this.gameOver) return false;
+            
+            // Check if destination is empty
+            if (this.board[toRow][toCol].hasPeg) return false;
+            
+            // Check if it's a valid jump for star board
+            const rowDiff = toRow - fromRow;
+            const colDiff = toCol - fromCol;
+            
+            // Star board allows horizontal and vertical jumps of 2 positions
+            let middleRow, middleCol;
+            
+            if (Math.abs(rowDiff) === 2 && colDiff === 0) {
+                // Vertical jump
+                middleRow = fromRow + rowDiff / 2;
+                middleCol = fromCol;
+            } else if (rowDiff === 0 && Math.abs(colDiff) === 2) {
+                // Horizontal jump (same row)
+                middleRow = fromRow;
+                middleCol = fromCol + colDiff / 2;
+            } else {
+                return false; // Only allow vertical and horizontal jumps for star
+            }
+            
+            // Check if middle position exists and has a peg
+            if (middleRow < 0 || middleRow >= this.board.length || 
+                middleCol < 0 || middleCol >= this.board[middleRow].length) {
+                return false;
+            }
+            
+            return this.board[middleRow][middleCol].hasPeg;
+        }
+
+        makeMove(fromRow, fromCol, toRow, toCol) {
+            const rowDiff = toRow - fromRow;
+            const colDiff = toCol - fromCol;
+            const middleRow = fromRow + rowDiff / 2;
+            const middleCol = fromCol + colDiff / 2;
+            
+            // Remove peg from source
+            this.board[fromRow][fromCol].hasPeg = false;
+            
+            // Remove jumped peg
+            this.board[middleRow][middleCol].hasPeg = false;
+            
+            // Add peg to destination
+            this.board[toRow][toCol].hasPeg = true;
+            
+            this.pegCount -= 1;
+            this.renderBoard();
+            this.updateDisplay();
+            this.checkGameStatus();
+        }
+
+        updateDisplay() {
+            document.getElementById('pegCount').textContent = this.pegCount;
+            document.getElementById('boardName').textContent = this.boardConfig.name;
         }
 
         checkGameStatus() {
