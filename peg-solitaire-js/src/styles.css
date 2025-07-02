@@ -1,0 +1,81 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+    margin: 0;
+    padding: 20px;
+}
+
+#gameBoard {
+    display: grid;
+    gap: 5px;
+    margin: 0 auto;
+    position: relative;
+}
+
+.cell {
+    width: 40px;
+    height: 40px;
+    background-color: #fff;
+    border: 2px solid #ccc;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.cell:hover {
+    background-color: #e0e0e0;
+}
+
+.cell.invisible {
+    background-color: transparent;
+    border: none;
+}
+
+.cell.empty {
+    background-color: #f9c74f;
+}
+
+.cell.peg {
+    background-color: #f94144;
+}
+
+.cell.selected {
+    border: 2px solid #90be6d;
+}
+
+.cell.valid-move {
+    background-color: #90be6d;
+}
+
+.cell.invalid-move {
+    background-color: #f3722c;
+}
+
+.game-status {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 1.2em;
+}
+
+.win {
+    color: #43aa8b;
+}
+
+.lose {
+    color: #f94144;
+}
+
+button {
+    margin: 5px;
+    padding: 10px 15px;
+    font-size: 1em;
+    cursor: pointer;
+}
+
+button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}

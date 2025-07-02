@@ -1,0 +1,19 @@
+{
+  "name": "peg-solitaire",
+  "version": "1.0.0",
+  "description": "A Peg Solitaire game with multiple board types.",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "keywords": [
+    "peg",
+    "solitaire",
+    "game"
+  ],
+  "author": "",
+  "license": "ISC"
+}
