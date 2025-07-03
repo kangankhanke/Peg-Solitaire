@@ -226,43 +226,44 @@ button:hover {
 
     .hole {
         position: absolute;
-        width: 48px;
-        height: 48px;
+        width: 36px;
+        height: 36px;
         border-radius: 50%;
-        background: radial-gradient(circle, #fbc02d 0%, #fdd835 100%);
-        border: 2px solid rgba(0, 0, 0, 0.2);
-        box-shadow: none;
+        background: radial-gradient(circle at 30% 30%, #8d6e63, #5d4037);
+        border: 2px solid #3e2723;
+        box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.3);
         cursor: pointer;
-        transition: all 0.3s ease;
+        transition: all 0.2s ease;
     }
 
     .hole:hover {
-        border-color: #ffeb3b;
-        box-shadow: 0 0 10px rgba(255, 235, 59, 0.6);
+        box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.3), 0 0 8px rgba(255, 193, 7, 0.5);
     }
 
     .hole .peg {
-        width: 100%;
-        height: 100%;
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 32px;
+        height: 32px;
         border-radius: 50%;
-        background: radial-gradient(circle, #ef740a8a 0%, #ef740a 100%);
-        border: 2px solid #ef740a;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        position: static;
+        background: radial-gradient(circle at 30% 30%, #ffd54f, #ff8f00);
+        border: 2px solid #e65100;
+        cursor: grab;
+        transition: all 0.2s ease;
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
     }
 
     .hole .peg:hover {
         transform: scale(1.1);
-        box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     }
 
     .hole .peg.selected {
-        border-color: #ffeb3b !important;
-        box-shadow: 0 0 15px rgba(255, 235, 59, 0.8) !important;
-        transform: scale(1.15) !important;
-        background: radial-gradient(circle, #4caf50, #2e7d32);
+        background: radial-gradient(circle at 30% 30%, #4caf50, #2e7d32);
+        border-color: #1b5e20;
+        transform: scale(1.15);
+        box-shadow: 0 0 12px rgba(76, 175, 80, 0.6);
     }
 
     .hole .peg.dragging {
@@ -272,15 +273,8 @@ button:hover {
     }
 
     .hole.valid-drop {
-        border-color: #00e676 !important;
-        box-shadow: 0 0 10px rgba(0, 230, 118, 0.6) !important;
-        animation: pulse 1s infinite;
-        background: radial-gradient(circle, #81c784, #4caf50);
-    }
-
-    .hole.invalid-move {
-        border-color: #e53935 !important;
-        box-shadow: 0 0 10px rgba(229, 57, 53, 0.6) !important;
+        background: radial-gradient(circle at 30% 30%, #81c784, #4caf50);
+        box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.3), 0 0 12px rgba(76, 175, 80, 0.8);
     }
 
     .game-status {
