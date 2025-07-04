@@ -51,8 +51,20 @@ class PegSolitaire {
 
                 this.newGameBtn.addEventListener('click', () => this.createBoard());
                 this.resetBtn.addEventListener('click', () => this.resetGame());
-                this.undoBtn.addEventListener('click', () => this.undoMove());
-                this.redoBtn.addEventListener('click', () => this.redoMove());
+                this.undoBtn.addEventListener('click', () => {
+                    if (this.boardTypeSelect.value === 'pyramid' && this.triangleGame) {
+                        this.triangleGame.undoMove();
+                    } else {
+                        this.undoMove();
+                    }
+                });
+                this.redoBtn.addEventListener('click', () => {
+                    if (this.boardTypeSelect.value === 'pyramid' && this.triangleGame) {
+                        this.triangleGame.redoMove();
+                    } else {
+                        this.redoMove();
+                    }
+                });
                 this.startGameBtn.addEventListener('click', () => this.startGame());
             }
 
@@ -80,9 +92,9 @@ getBoardLayout(type) {
                         [-1,-1,1,1,1,-1,-1,-1],
                         [-1,-1,1,1,1,-1,-1,-1],
                         [-1,-1,1,1,1,-1,-1,-1],
-                        [1,1,1,1,1,1,1,1,1],
-                        [1,1,1,0,1,1,1,1,1],
-                        [1,1,1,1,1,1,1,1,1],
+                        [1,1,1,1,1,1,1,1],
+                        [1,1,1,0,1,1,1,1],
+                        [1,1,1,1,1,1,1,1],
                         [-1,-1,1,1,1,-1,-1,-1],
                         [-1,-1,1,1,1,-1,-1,-1]
                     ],
@@ -124,7 +136,6 @@ getBoardLayout(type) {
 
             createBoard() {
                 const boardType = this.boardTypeSelect.value;
-                
                 // Delegate pyramid to TrianglePegSolitaire and star to StarPegSolitaire
                 if (boardType === 'pyramid') {
                     if (this.triangleGame) {
@@ -133,6 +144,9 @@ getBoardLayout(type) {
                         this.triangleGame = new TrianglePegSolitaire(boardType);
                     }
                     this.boardElement.style.display = 'none';
+                    // Always show the custom board container
+                    const triangleBoard = document.getElementById('board');
+                    if (triangleBoard) triangleBoard.style.display = 'block';
                     return;
                 } else if (boardType === 'star') {
                     if (this.starGame) {
@@ -141,15 +155,14 @@ getBoardLayout(type) {
                         this.starGame = new StarPegSolitaire();
                     }
                     this.boardElement.style.display = 'none';
+                    // Always show the custom board container
+                    const starBoard = document.getElementById('board');
+                    if (starBoard) starBoard.style.display = 'block';
                     return;
                 } else {
-                    // Hide triangle and star games if switching back to regular boards
-                    if (this.triangleGame) {
-                        const triangleBoard = document.getElementById('board');
-                        if (triangleBoard) {
-                            triangleBoard.style.display = 'none';
-                        }
-                    }
+                    // Hide triangle and star boards if switching back to regular boards
+                    const customBoard = document.getElementById('board');
+                    if (customBoard) customBoard.style.display = 'none';
                     this.boardElement.style.display = 'grid';
                 }
                 
@@ -394,10 +407,10 @@ getBoardLayout(type) {
                 
                 if (this.pegCount === 1) {
                     this.gameState = 'won';
-                    this.gameStatusDiv.innerHTML = '<div class="win-message">🎉 Congratulations! You won! 🎉</div>';
+                    this.gameStatusDiv.innerHTML = '<div class="win-message"> Congratulations! You managed to put the last peg in the initially empty hole 🎉</div>';
                 } else if (!this.hasValidMoves()) {
                     this.gameState = 'lost';
-                    this.gameStatusDiv.innerHTML = '<div style="background: linear-gradient(45deg, #ff6b6b, #ee5a24); color: white; padding: 15px; border-radius: 10px; margin-top: 10px;">😞 No more moves available. Try again!</div>';
+                    this.gameStatusDiv.innerHTML = '<div style="background: linear-gradient(45deg, #ff6b6b, #ee5a24); color: white; padding: 15px; border-radius: 10px; margin-top: 10px;">No more moves available. Game over!</div>';
                 }
             }
 
@@ -456,8 +469,13 @@ getBoardLayout(type) {
                 this.pegCount = this.countPegs();
                 this.pegCountSpan.textContent = this.pegCount;
                 this.moveCountSpan.textContent = this.moveCount;
-                this.undoBtn.disabled = this.moveHistory.length === 0;
-                this.redoBtn.disabled = this.redoHistory.length === 0;
+                if (this.boardTypeSelect.value === 'pyramid' && this.triangleGame) {
+                    this.undoBtn.disabled = this.triangleGame.moveHistory.length === 0;
+                    this.redoBtn.disabled = this.triangleGame.redoHistory.length === 0;
+                } else {
+                    this.undoBtn.disabled = this.moveHistory.length === 0;
+                    this.redoBtn.disabled = this.redoHistory.length === 0;
+                }
             }
         }
      
@@ -469,6 +487,8 @@ class TrianglePegSolitaire {
         this.selectedPeg = null;
         this.pegCount = 0;
         this.gameOver = false;
+        this.moveHistory = [];
+        this.redoHistory = [];
         this.boardConfig = {
             name: 'Pyramid',
             initialPegs: 14,
@@ -679,16 +699,54 @@ class TrianglePegSolitaire {
             const colDiff = toCol - fromCol;
             const middleRow = fromRow + rowDiff / 2;
             const middleCol = fromCol + colDiff / 2;
-            
+            // Save move for undo
+            this.moveHistory.push({
+                from: { row: fromRow, col: fromCol },
+                to: { row: toRow, col: toCol },
+                jumped: { row: middleRow, col: middleCol }
+            });
+            // Clear redo history when a new move is made
+            this.redoHistory = [];
             // Remove peg from source
             this.board[fromRow][fromCol].hasPeg = false;
-            
             // Remove jumped peg
             this.board[middleRow][middleCol].hasPeg = false;
-            
             // Add peg to destination
             this.board[toRow][toCol].hasPeg = true;
-            
+            this.pegCount -= 1;
+            this.renderBoard();
+            this.updateDisplay();
+            this.checkGameStatus();
+        }
+
+        undoMove() {
+            if (this.moveHistory.length === 0) return;
+            const lastMove = this.moveHistory.pop();
+            const { from, to, jumped } = lastMove;
+            // Save the move to redo history
+            this.redoHistory.push(lastMove);
+            // Reverse the move
+            this.board[from.row][from.col].hasPeg = true;
+            this.board[jumped.row][jumped.col].hasPeg = true;
+            this.board[to.row][to.col].hasPeg = false;
+            this.pegCount += 1;
+            this.renderBoard();
+            this.updateDisplay();
+            document.getElementById('gameStatus').textContent = '';
+            document.getElementById('gameStatus').className = 'game-status';
+            this.gameOver = false;
+        }
+
+        redoMove() {
+            if (this.redoHistory.length === 0) return;
+            const moveToRedo = this.redoHistory.pop();
+            const { from, to, jumped } = moveToRedo;
+            // Save the move back to move history
+            this.moveHistory.push(moveToRedo);
+            // Execute the move again
+            this.board[from.row][from.col].hasPeg = false;
+            this.board[jumped.row][jumped.col].hasPeg = false;
+            this.board[to.row][to.col].hasPeg = true;
             this.pegCount -= 1;
             this.renderBoard();
             this.updateDisplay();
@@ -697,7 +755,11 @@ class TrianglePegSolitaire {
 
         updateDisplay() {
             document.getElementById('pegCount').textContent = this.pegCount;
-            document.getElementById('boardName').textContent = this.boardConfig.name;
+            // Fix: Also update undo/redo button states for pyramid board
+            const undoBtn = document.getElementById('undoBtn');
+            const redoBtn = document.getElementById('redoBtn');
+            if (undoBtn) undoBtn.disabled = this.moveHistory.length === 0;
+            if (redoBtn) redoBtn.disabled = this.redoHistory.length === 0;
         }
 
         checkGameStatus() {
@@ -765,55 +827,36 @@ class TrianglePegSolitaire {
 
         initializeBoard() {
             // Star/cross layout: 13 holes in rows 1,4,3,4,1 with top hole empty
-            this.board = [];
             const centerX = 240;
             const centerY = 200;
             const spacing = 50;
-            
-            // Create star pattern: 1,4,3,4,1 holes per row
             this.board = [
-                // Row 1: 1 hole (top) - empty to start
                 [{ hasPeg: false, x: centerX, y: centerY - spacing * 2 }],
-                
-                // Row 2: 4 holes 
                 [{ hasPeg: true, x: centerX - spacing * 1.5, y: centerY - spacing },
                  { hasPeg: true, x: centerX - spacing * 0.5, y: centerY - spacing },
                  { hasPeg: true, x: centerX + spacing * 0.5, y: centerY - spacing },
                  { hasPeg: true, x: centerX + spacing * 1.5, y: centerY - spacing }],
-                
-                // Row 3: 3 holes (middle row)
                 [{ hasPeg: true, x: centerX - spacing, y: centerY },
                  { hasPeg: true, x: centerX, y: centerY },
                  { hasPeg: true, x: centerX + spacing, y: centerY }],
-                
-                // Row 4: 4 holes
                 [{ hasPeg: true, x: centerX - spacing * 1.5, y: centerY + spacing },
                  { hasPeg: true, x: centerX - spacing * 0.5, y: centerY + spacing },
                  { hasPeg: true, x: centerX + spacing * 0.5, y: centerY + spacing },
                  { hasPeg: true, x: centerX + spacing * 1.5, y: centerY + spacing }],
-                
-                // Row 5: 1 hole (bottom)
                 [{ hasPeg: true, x: centerX, y: centerY + spacing * 2 }]
             ];
-            
             this.pegCount = this.boardConfig.initialPegs;
         }
 
         renderBoard() {
             const boardElement = document.getElementById('board');
             const gameBoard = document.getElementById('gameBoard');
-            
-            // Show star board, hide regular board
             boardElement.style.display = 'block';
-            if (gameBoard) {
-                gameBoard.style.display = 'none';
-            }
-            
+            if (gameBoard) gameBoard.style.display = 'none';
             boardElement.innerHTML = '';
             boardElement.style.position = 'relative';
             boardElement.style.width = this.boardConfig.boardWidth + 'px';
             boardElement.style.height = this.boardConfig.boardHeight + 'px';
-
             for (let row = 0; row < this.board.length; row++) {
                 for (let col = 0; col < this.board[row].length; col++) {
                     const hole = this.board[row][col];
@@ -823,25 +866,20 @@ class TrianglePegSolitaire {
                     holeElement.style.top = hole.y + 'px';
                     holeElement.dataset.row = row;
                     holeElement.dataset.col = col;
-
                     if (hole.hasPeg) {
                         const pegElement = document.createElement('div');
                         pegElement.className = 'peg';
                         pegElement.draggable = true;
                         pegElement.dataset.row = row;
                         pegElement.dataset.col = col;
-                        
                         pegElement.addEventListener('dragstart', (e) => this.handleDragStart(e));
                         pegElement.addEventListener('dragend', (e) => this.handleDragEnd(e));
                         pegElement.addEventListener('click', (e) => this.handlePegClick(e));
-                        
                         holeElement.appendChild(pegElement);
                     }
-
                     holeElement.addEventListener('dragover', (e) => this.handleDragOver(e));
                     holeElement.addEventListener('drop', (e) => this.handleDrop(e));
                     holeElement.addEventListener('click', (e) => this.handleHoleClick(e));
-
                     boardElement.appendChild(holeElement);
                 }
             }

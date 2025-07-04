@@ -147,6 +147,7 @@ button:hover {
         border-color: #ffeb3b !important;
         box-shadow: 0 0 15px rgba(255, 235, 59, 0.8) !important;
         transform: scale(1.15) !important;
+        background: radial-gradient(circle, #e53935, rgba(229, 57, 53, 0.6));
     }
 
     .cell.valid-move {
@@ -262,7 +263,7 @@ button:hover {
         border-color: #ffeb3b !important;
         box-shadow: 0 0 15px rgba(255, 235, 59, 0.8) !important;
         transform: scale(1.15) !important;
-        background: radial-gradient(circle, #4caf50, #2e7d32);
+        background: radial-gradient(circle, #e53935, rgba(229, 57, 53, 0.6));
     }
 
     .hole .peg.dragging {
@@ -281,26 +282,6 @@ button:hover {
     .hole.invalid-move {
         border-color: #e53935 !important;
         box-shadow: 0 0 10px rgba(229, 57, 53, 0.6) !important;
-    }
-
-    .game-status {
-        text-align: center;
-        margin-top: 20px;
-        padding: 10px;
-        border-radius: 8px;
-        font-weight: bold;
-        font-size: 1.2rem;
-    }
-
-    .game-status.win {
-        background: linear-gradient(45deg, #4caf50, #8bc34a);
-        color: white;
-        animation: celebrate 0.5s ease;
-    }
-
-    .game-status.lose {
-        background: linear-gradient(45deg, #f44336, #ff7043);
-        color: white;
     }
 
     @media (max-width: 768px) {
