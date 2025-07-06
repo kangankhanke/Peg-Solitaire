@@ -136,6 +136,8 @@ getBoardLayout(type) {
 
             createBoard() {
                 const boardType = this.boardTypeSelect.value;
+                // Hide setupMode for pyramid and star boards
+                if (this.setupModeDiv) this.setupModeDiv.style.display = 'none';
                 // Delegate pyramid to TrianglePegSolitaire and star to StarPegSolitaire
                 if (boardType === 'pyramid') {
                     if (this.triangleGame) {
