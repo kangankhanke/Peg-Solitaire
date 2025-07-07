@@ -1087,4 +1087,4 @@ class TrianglePegSolitaire {
         game.reset();
     }
 
-
+//test 
