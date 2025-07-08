@@ -54,15 +54,11 @@ class PegSolitaire {
                 this.undoBtn.addEventListener('click', () => {
                     if ((this.boardTypeSelect.value === 'pyramid' || this.boardTypeSelect.value === 'star') && this.customGame) {
                         this.customGame.undoMove();
-                    if ((this.boardTypeSelect.value === 'pyramid' || this.boardTypeSelect.value === 'star') && this.customGame) {
-                        this.customGame.undoMove();
                     } else {
                         this.undoMove();
                     }
                 });
                 this.redoBtn.addEventListener('click', () => {
-                    if ((this.boardTypeSelect.value === 'pyramid' || this.boardTypeSelect.value === 'star') && this.customGame) {
-                        this.customGame.redoMove();
                     if ((this.boardTypeSelect.value === 'pyramid' || this.boardTypeSelect.value === 'star') && this.customGame) {
                         this.customGame.redoMove();
                     } else {
@@ -146,23 +142,14 @@ getBoardLayout(type) {
                 if (boardType === 'pyramid' || boardType === 'star') {
                     if (this.customGame) {
                         this.customGame.switchBoard(boardType);
-                // Delegate pyramid and star to CustomBoardPegSolitaire
-                if (boardType === 'pyramid' || boardType === 'star') {
-                    if (this.customGame) {
-                        this.customGame.switchBoard(boardType);
                     } else {
-                        this.customGame = new CustomBoardPegSolitaire(boardType);
                         this.customGame = new CustomBoardPegSolitaire(boardType);
                     }
                     this.boardElement.style.display = 'none';
                     // Always show the custom board container
                     const customBoard = document.getElementById('board');
                     if (customBoard) customBoard.style.display = 'block';
-                    const customBoard = document.getElementById('board');
-                    if (customBoard) customBoard.style.display = 'block';
                     return;
-                } else {
-                    // Hide custom boards if switching back to regular boards
                 } else {
                     // Hide custom boards if switching back to regular boards
                     const customBoard = document.getElementById('board');
@@ -476,9 +463,6 @@ getBoardLayout(type) {
                 if ((this.boardTypeSelect.value === 'pyramid' || this.boardTypeSelect.value === 'star') && this.customGame) {
                     this.undoBtn.disabled = this.customGame.moveHistory.length === 0;
                     this.redoBtn.disabled = this.customGame.redoHistory.length === 0;
-                if ((this.boardTypeSelect.value === 'pyramid' || this.boardTypeSelect.value === 'star') && this.customGame) {
-                    this.undoBtn.disabled = this.customGame.moveHistory.length === 0;
-                    this.redoBtn.disabled = this.customGame.redoHistory.length === 0;
                 } else {
                     this.undoBtn.disabled = this.moveHistory.length === 0;
                     this.redoBtn.disabled = this.redoHistory.length === 0;
@@ -487,7 +471,6 @@ getBoardLayout(type) {
         }
      
 
-class CustomBoardPegSolitaire {
 class CustomBoardPegSolitaire {
     constructor(type = 'pyramid') {
         this.type = type;
@@ -520,37 +503,9 @@ class CustomBoardPegSolitaire {
             }
         };
         return configs[type] || configs.pyramid;
-        this.boardConfig = this.getBoardConfig(type);
-        this.currentBoard = type;
-        this.initializeBoard();
-        this.renderBoard();
-        this.updateDisplay();
-    }
-
-    getBoardConfig(type) {
-        const configs = {
-            pyramid: {
-                name: 'Pyramid',
-                initialPegs: 14,
-                boardWidth: 480,
-                boardHeight: 400
-            },
-            star: {
-                name: 'Star',
-                initialPegs: 12,
-                boardWidth: 480,
-                boardHeight: 400
-            }
-        };
-        return configs[type] || configs.pyramid;
     }
 
     initializeBoard() {
-        if (this.type === 'pyramid') {
-            this.initializePyramidBoard();
-        } else if (this.type === 'star') {
-            this.initializeStarBoard();
-        }
         if (this.type === 'pyramid') {
             this.initializePyramidBoard();
         } else if (this.type === 'star') {
@@ -591,51 +546,7 @@ class CustomBoardPegSolitaire {
             [{ hasPeg: true, x: centerX, y: centerY + spacing * 2 }]
         ];
     }
-    initializePyramidBoard() {
-        // Pyramid layout: 5 rows with top hole empty
-        this.board = [
-            [{ hasPeg: false, x: 240, y: 50 }], // Row 0 - top hole empty
-            [{ hasPeg: true, x: 210, y: 120 }, { hasPeg: true, x: 270, y: 120 }], // Row 1
-            [{ hasPeg: true, x: 180, y: 190 }, { hasPeg: true, x: 240, y: 190 }, { hasPeg: true, x: 300, y: 190 }], // Row 2
-            [{ hasPeg: true, x: 150, y: 260 }, { hasPeg: true, x: 210, y: 260 }, { hasPeg: true, x: 270, y: 260 }, { hasPeg: true, x: 330, y: 260 }], // Row 3
-            [{ hasPeg: true, x: 120, y: 330 }, { hasPeg: true, x: 180, y: 330 }, { hasPeg: true, x: 240, y: 330 }, { hasPeg: true, x: 300, y: 330 }, { hasPeg: true, x: 360, y: 330 }] // Row 4
-        ];
-    }
 
-    initializeStarBoard() {
-        // Star/cross layout: 13 holes in rows 1,4,3,4,1 with top hole empty
-        const centerX = 240;
-        const centerY = 200;
-        const spacing = 50;
-        this.board = [
-            [{ hasPeg: false, x: centerX, y: centerY - spacing * 2 }],
-            [{ hasPeg: true, x: centerX - spacing * 1.5, y: centerY - spacing },
-             { hasPeg: true, x: centerX - spacing * 0.5, y: centerY - spacing },
-             { hasPeg: true, x: centerX + spacing * 0.5, y: centerY - spacing },
-             { hasPeg: true, x: centerX + spacing * 1.5, y: centerY - spacing }],
-            [{ hasPeg: true, x: centerX - spacing, y: centerY },
-            { hasPeg: true, x: centerX, y: centerY },
-            { hasPeg: true, x: centerX + spacing, y: centerY }],
-            [{ hasPeg: true, x: centerX - spacing * 1.5, y: centerY + spacing },
-             { hasPeg: true, x: centerX - spacing * 0.5, y: centerY + spacing },
-             { hasPeg: true, x: centerX + spacing * 0.5, y: centerY + spacing },
-             { hasPeg: true, x: centerX + spacing * 1.5, y: centerY + spacing }],
-            [{ hasPeg: true, x: centerX, y: centerY + spacing * 2 }]
-        ];
-    }
-
-    switchBoard(boardType) {
-        this.type = boardType;
-        this.currentBoard = boardType;
-        this.boardConfig = this.getBoardConfig(boardType);
-        this.gameOver = false;
-        this.selectedPeg = null;
-        this.moveHistory = [];
-        this.redoHistory = [];
-        this.initializeBoard();
-        this.renderBoard();
-        this.updateDisplay();
-    }
     switchBoard(boardType) {
         this.type = boardType;
         this.currentBoard = boardType;
@@ -653,7 +564,6 @@ class CustomBoardPegSolitaire {
             const boardElement = document.getElementById('board');
             const gameBoard = document.getElementById('gameBoard');
             
-            // Show custom board, hide regular board
             // Show custom board, hide regular board
             boardElement.style.display = 'block';
             if (gameBoard) {
@@ -782,7 +692,6 @@ class CustomBoardPegSolitaire {
             // Check if destination is empty
             if (this.board[toRow][toCol].hasPeg) return false;
             
-            // Check if it's a valid jump
             // Check if it's a valid jump
             const rowDiff = toRow - fromRow;
             const colDiff = toCol - fromCol;
@@ -1029,12 +938,6 @@ class CustomBoardPegSolitaire {
 
         updateDisplay() {
             document.getElementById('pegCount').textContent = this.pegCount;
-            // Update board name for star board
-            const boardNameElement = document.getElementById('boardName');
-            if (boardNameElement) {
-                boardNameElement.textContent = this.boardConfig.name;
-            }
-            // Update undo/redo button states
             // Update board name for star board
             const boardNameElement = document.getElementById('boardName');
             if (boardNameElement) {
