@@ -401,7 +401,7 @@ getBoardLayout(type) {
                     this.gameStatusDiv.innerHTML = '<div class="win-message"> Congratulations! You managed to put the last peg in the initially empty hole 🎉</div>';
                 } else if (!this.hasValidMoves()) {
                     this.gameState = 'lost';
-                    this.gameStatusDiv.innerHTML = '<div style="background: linear-gradient(45deg, #ff6b6b, #ee5a24); color: white; padding: 15px; border-radius: 10px; margin-top: 10px;">No more moves available. Game over!</div>';
+                    this.gameStatusDiv.innerHTML = '<div style="background: linear-gradient(45deg,rgba(255, 107, 107, 0),rgba(238, 90, 36, 0)); color: black; padding: 15px; border-radius: 10px; margin-top: 10px;">No more moves available. Game over!</div>';
                 }
             }
 
@@ -954,11 +954,11 @@ class CustomBoardPegSolitaire {
             const statusElement = document.getElementById('gameStatus');
             
             if (this.pegCount === 1) {
-                statusElement.textContent = '🎉 Perfect! You won with only 1 peg remaining!';
+                statusElement.textContent = 'Perfect! You won with only 1 peg remaining!';
                 statusElement.className = 'game-status win';
                 this.gameOver = true;
             } else if (!this.hasValidMoves()) {
-                statusElement.textContent = `😔 No more moves! Final score: ${this.pegCount} pegs remaining`;
+                statusElement.textContent = `No more moves! Final score: ${this.pegCount} pegs remaining`;
                 statusElement.className = 'game-status lose';
                 this.gameOver = true;
             } else {
