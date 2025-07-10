@@ -398,7 +398,7 @@ getBoardLayout(type) {
                 
                 if (this.pegCount === 1) {
                     this.gameState = 'won';
-                    this.gameStatusDiv.innerHTML = '<div class="win-message"> Congratulations! You managed to put the last peg in the initially empty hole 🎉</div>';
+                    this.gameStatusDiv.innerHTML = '<div class="win-message"> Congratulations! </div>';
                 } else if (!this.hasValidMoves()) {
                     this.gameState = 'lost';
                     this.gameStatusDiv.innerHTML = '<div style="background: linear-gradient(45deg,rgba(255, 107, 107, 0),rgba(238, 90, 36, 0)); color: black; padding: 15px; border-radius: 10px; margin-top: 10px;">No more moves available. Game over!</div>';
